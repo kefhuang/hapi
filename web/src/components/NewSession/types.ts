@@ -1,4 +1,9 @@
-import { GEMINI_MODEL_PRESETS, GEMINI_MODEL_LABELS } from '@hapi/protocol'
+import {
+    CLAUDE_MODEL_LABELS,
+    CLAUDE_MODEL_PRESETS,
+    GEMINI_MODEL_LABELS,
+    GEMINI_MODEL_PRESETS
+} from '@hapi/protocol'
 import type { AgentFlavor } from '@hapi/protocol'
 
 export type AgentType = AgentFlavor
@@ -6,13 +11,17 @@ export type SessionType = 'simple' | 'worktree'
 export type CodexReasoningEffort = 'default' | 'low' | 'medium' | 'high' | 'xhigh'
 export type ClaudeEffort = 'auto' | 'medium' | 'high' | 'max'
 
+function modelPresetOptions<TModel extends string>(
+    presets: readonly TModel[],
+    labels: Record<TModel, string>
+): { value: string; label: string }[] {
+    return presets.map(model => ({ value: model, label: labels[model] }))
+}
+
 export const MODEL_OPTIONS: Record<AgentType, { value: string; label: string }[]> = {
     claude: [
         { value: 'auto', label: 'Default' },
-        { value: 'opus', label: 'Opus' },
-        { value: 'opus[1m]', label: 'Opus 1M' },
-        { value: 'sonnet', label: 'Sonnet' },
-        { value: 'sonnet[1m]', label: 'Sonnet 1M' },
+        ...modelPresetOptions(CLAUDE_MODEL_PRESETS, CLAUDE_MODEL_LABELS),
     ],
     codex: [
         { value: 'auto', label: 'Default' },
@@ -20,7 +29,7 @@ export const MODEL_OPTIONS: Record<AgentType, { value: string; label: string }[]
     cursor: [],
     gemini: [
         { value: 'auto', label: 'Default' },
-        ...GEMINI_MODEL_PRESETS.map(m => ({ value: m, label: GEMINI_MODEL_LABELS[m] })),
+        ...modelPresetOptions(GEMINI_MODEL_PRESETS, GEMINI_MODEL_LABELS),
     ],
     opencode: [],
 }
