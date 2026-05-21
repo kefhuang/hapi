@@ -1,3 +1,90 @@
+import { z } from 'zod'
+import {
+    DecryptedMessageSchema,
+    MachineSchema,
+    SessionSchema
+} from './schemas'
+import type {
+    DecryptedMessage,
+    Machine,
+    Session
+} from './schemas'
+import type { SessionSummary } from './sessionSummary'
+
+export const CreateOrLoadSessionRequestSchema = z.object({
+    tag: z.string().min(1),
+    metadata: z.unknown(),
+    agentState: z.unknown().nullable().optional(),
+    model: z.string().optional(),
+    modelReasoningEffort: z.string().optional(),
+    effort: z.string().optional()
+})
+
+export type CreateOrLoadSessionRequest = z.infer<typeof CreateOrLoadSessionRequestSchema>
+
+export const CreateOrLoadMachineRequestSchema = z.object({
+    id: z.string().min(1),
+    metadata: z.unknown(),
+    runnerState: z.unknown().nullable().optional()
+})
+
+export type CreateOrLoadMachineRequest = z.infer<typeof CreateOrLoadMachineRequestSchema>
+
+export const CliMessagesResponseSchema = z.object({
+    messages: z.array(z.object({
+        id: z.string(),
+        seq: z.number(),
+        createdAt: z.number(),
+        localId: z.string().nullable().optional(),
+        content: z.unknown()
+    }))
+})
+
+export type CliMessagesResponse = z.infer<typeof CliMessagesResponseSchema>
+
+export const CreateSessionResponseSchema = z.object({
+    session: SessionSchema
+})
+
+export type CreateSessionResponse = z.infer<typeof CreateSessionResponseSchema>
+
+export const CreateMachineResponseSchema = z.object({
+    machine: MachineSchema
+})
+
+export type CreateMachineResponse = z.infer<typeof CreateMachineResponseSchema>
+
+export const GetSessionResponseSchema = CreateSessionResponseSchema
+export type GetSessionResponse = CreateSessionResponse
+
+export type AuthResponse = {
+    token: string
+    user: {
+        id: number
+        username?: string
+        firstName?: string
+        lastName?: string
+    }
+}
+
+export type SessionsResponse = { sessions: SessionSummary[] }
+export type SessionResponse = { session: Session }
+export type MessagesResponse = {
+    messages: DecryptedMessage[]
+    page: {
+        limit: number
+        nextBeforeSeq: number | null
+        nextBeforeAt: number | null
+        hasMore: boolean
+    }
+}
+
+export type MachinesResponse = { machines: Machine[] }
+
+export type SpawnResponse =
+    | { type: 'success'; sessionId: string }
+    | { type: 'error'; message: string }
+
 export type CommandResponse = {
     success: boolean
     stdout?: string

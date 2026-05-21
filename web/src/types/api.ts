@@ -20,11 +20,17 @@ export type {
     MachineDirectoryEntry,
     MachineListDirectoryResponse,
     MachinePathsExistsResponse,
+    AuthResponse,
+    MachinesResponse,
+    MessagesResponse,
     OpencodeModelsResponse,
     OpencodeModelSummary,
     PathExistsResponse,
     SlashCommand,
     SlashCommandsResponse,
+    SessionResponse,
+    SessionsResponse,
+    SpawnResponse,
     UploadFileResponse
 } from '@hapi/protocol/apiTypes'
 
@@ -72,34 +78,6 @@ export type DecryptedMessage = ProtocolDecryptedMessage & {
     originalText?: string
     invokedAt?: number | null
 }
-
-export type AuthResponse = {
-    token: string
-    user: {
-        id: number
-        username?: string
-        firstName?: string
-        lastName?: string
-    }
-}
-
-export type SessionsResponse = { sessions: SessionSummary[] }
-export type SessionResponse = { session: Session }
-export type MessagesResponse = {
-    messages: DecryptedMessage[]
-    page: {
-        limit: number
-        nextBeforeSeq: number | null
-        nextBeforeAt: number | null
-        hasMore: boolean
-    }
-}
-
-export type MachinesResponse = { machines: Machine[] }
-
-export type SpawnResponse =
-    | { type: 'success'; sessionId: string }
-    | { type: 'error'; message: string }
 
 export type FileSearchItem = {
     fileName: string
