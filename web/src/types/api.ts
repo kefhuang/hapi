@@ -1,5 +1,6 @@
 import type {
     DecryptedMessage as ProtocolDecryptedMessage,
+    Machine,
     Session,
     SessionSummary,
     SyncEvent as ProtocolSyncEvent,
@@ -31,7 +32,9 @@ export type {
     AttachmentMetadata,
     CodexCollaborationMode,
     PermissionMode,
+    Machine,
     Session,
+    SessionPatch,
     SessionSummary,
     SessionSummaryMetadata,
     TeamMember,
@@ -82,19 +85,6 @@ export type RunnerState = {
         signal?: string | null
         at: number
     } | null
-}
-
-export type Machine = {
-    id: string
-    active: boolean
-    metadata: {
-        host: string
-        platform: string
-        happyCliVersion: string
-        displayName?: string
-        workspaceRoots?: string[]
-    } | null
-    runnerState?: RunnerState | null
 }
 
 export type AuthResponse = {

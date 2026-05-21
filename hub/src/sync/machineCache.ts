@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { Machine, MachinePatch } from '@hapi/protocol/types'
 import type { Store } from '../store'
 import { clampAliveTime } from './aliveTime'
 import { EventPublisher } from './eventPublisher'
@@ -14,29 +15,6 @@ const machineMetadataSchema = z.object({
     workspaceRoot: z.string().optional(),
     workspaceRoots: z.array(z.string()).optional()
 })
-
-export interface Machine {
-    id: string
-    namespace: string
-    seq: number
-    createdAt: number
-    updatedAt: number
-    active: boolean
-    activeAt: number
-    metadata: {
-        host: string
-        platform: string
-        happyCliVersion: string
-        displayName?: string
-        homeDir?: string
-        happyHomeDir?: string
-        happyLibDir?: string
-        workspaceRoots?: string[]
-    } | null
-    metadataVersion: number
-    runnerState: unknown | null
-    runnerStateVersion: number
-}
 
 export class MachineCache {
     private readonly machines: Map<string, Machine> = new Map()
@@ -180,7 +158,13 @@ export class MachineCache {
             if (!machine.active) continue
             if (now - machine.activeAt <= machineTimeoutMs) continue
             machine.active = false
-            this.publisher.emit({ type: 'machine-updated', machineId: machine.id, data: { active: false } })
+            this.publisher.emit({
+                type: 'machine-updated',
+                machineId: machine.id,
+                data: { active: false } satisfies MachinePatch
+            })
         }
     }
 }
+
+export type { Machine }
