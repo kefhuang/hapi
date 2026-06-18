@@ -16,6 +16,9 @@ import { useSessionListStatusMode } from '@/hooks/useSessionListStatusMode'
 import { classifySessionAttention } from '@/lib/sessionAttention'
 import { getSessionLastSeenAt } from '@/lib/sessionLastSeen'
 import { getAttentionLabel, SessionAttentionIndicator } from '@/components/SessionAttentionIndicator'
+import { HoverTooltip, SESSION_ROW_TOOLTIP_FOCUS_CLASS, useSessionRowTooltipIds } from '@/components/HoverTooltip'
+import { formatRelativeTime } from '@/lib/relativeTime'
+import { formatScheduledTooltipDetail } from '@/lib/scheduledTime'
 import { getCodexImportedAt, subscribeCodexImportedSessions } from '@/lib/codexImportedSessions'
 import { formatReopenError } from '@/lib/reopenError'
 
@@ -545,19 +548,6 @@ function MachineIcon(props: { className?: string }) {
     )
 }
 
-function formatRelativeTime(value: number, t: (key: string, params?: Record<string, string | number>) => string): string | null {
-    const ms = value < 1_000_000_000_000 ? value * 1000 : value
-    if (!Number.isFinite(ms)) return null
-    const delta = Date.now() - ms
-    if (delta < 60_000) return t('session.time.justNow')
-    const minutes = Math.floor(delta / 60_000)
-    if (minutes < 60) return t('session.time.minutesAgo', { n: minutes })
-    const hours = Math.floor(minutes / 60)
-    if (hours < 24) return t('session.time.hoursAgo', { n: hours })
-    const days = Math.floor(hours / 24)
-    if (days < 7) return t('session.time.daysAgo', { n: days })
-    return new Date(ms).toLocaleDateString()
-}
 
 function formatCodexImportedRelativeTime(value: number, t: (key: string, params?: Record<string, string | number>) => string): string | null {
     const ms = value < 1_000_000_000_000 ? value * 1000 : value
@@ -654,14 +644,20 @@ function SessionItem(props: {
     const scheduledLabel = s.futureScheduledMessageCount > 1
         ? t('session.item.scheduledMessages', { count: s.futureScheduledMessageCount })
         : t('session.item.scheduledMessage')
+    const hasScheduleTooltip = showDetailedStatus && s.futureScheduledMessageCount > 0
+    const { attentionId, scheduleId, describedBy } = useSessionRowTooltipIds(
+        Boolean(attention),
+        hasScheduleTooltip
+    )
     return (
         <>
             <button
                 type="button"
                 {...longPressHandlers}
-                className={`session-list-item flex w-full flex-col gap-1 px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-link)] select-none rounded-lg ${selected ? 'bg-[var(--app-secondary-bg)]' : ''}`}
+                className={`session-list-item group/session-row flex w-full flex-col gap-1 px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-link)] select-none rounded-lg ${selected ? 'bg-[var(--app-secondary-bg)]' : ''}`}
                 style={{ WebkitTouchCallout: 'none' }}
                 aria-current={selected ? 'page' : undefined}
+                aria-describedby={describedBy}
             >
                 <div className={`flex items-center justify-between gap-3 ${!s.active ? 'opacity-50' : ''}`}>
                     <div className="flex items-center gap-2 min-w-0">
@@ -674,13 +670,27 @@ function SessionItem(props: {
                         ) : attention ? (
                             <SessionAttentionIndicator
                                 attention={attention}
+                                summary={s}
                                 label={attentionLabel ?? ''}
+                                tooltipId={attentionId!}
                             />
                         ) : null}
-                        {showDetailedStatus && s.futureScheduledMessageCount > 0 ? (
-                            <span title={scheduledLabel} aria-label={scheduledLabel} className="inline-flex shrink-0">
-                                <ScheduleIcon className="h-3.5 w-3.5 text-[var(--app-hint)]" />
-                            </span>
+                        {hasScheduleTooltip ? (
+                            <HoverTooltip
+                                id={scheduleId!}
+                                target={<ScheduleIcon className="h-3.5 w-3.5 text-[var(--app-hint)]" />}
+                                side="bottom"
+                                align="start"
+                                className="shrink-0"
+                                revealOnParentFocusClass={SESSION_ROW_TOOLTIP_FOCUS_CLASS}
+                            >
+                                <span className="block">
+                                    <span className="block font-medium">{scheduledLabel}</span>
+                                    <span className="mt-1 block text-[var(--app-hint)]">
+                                        {formatScheduledTooltipDetail(s, t)}
+                                    </span>
+                                </span>
+                            </HoverTooltip>
                         ) : null}
                     </div>
                     <div className="flex items-center gap-2 shrink-0 text-xs">
