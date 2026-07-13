@@ -63,6 +63,8 @@ export default {
   'sessions.group.showMore': '再显示 {n} 个',
   'sessions.group.showLess': '收起',
   'sessions.group.new': '在此目录新建会话',
+  'sidebar.hide': '隐藏侧边栏',
+  'sidebar.show': '显示侧边栏',
   'codexSync.tooltip': '从 Codex 导入会话到 Hapi',
   'codexSync.newSessionAction': '导入 Codex 历史',
   'codexSync.confirm.title': '导入 Codex 会话',

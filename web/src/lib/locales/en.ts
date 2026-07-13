@@ -63,6 +63,8 @@ export default {
   'sessions.group.showMore': 'Show {n} more',
   'sessions.group.showLess': 'Show less',
   'sessions.group.new': 'New session in this directory',
+  'sidebar.hide': 'Hide sidebar',
+  'sidebar.show': 'Show sidebar',
   'codexSync.tooltip': 'Import sessions from Codex into Hapi',
   'codexSync.newSessionAction': 'Import Codex history',
   'codexSync.confirm.title': 'Import Codex sessions',

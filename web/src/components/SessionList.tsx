@@ -29,6 +29,8 @@ import { getMachinePlatform, presentMachineHealth } from '@/lib/machineHealth'
 import { MachineGroupHeader } from '@/components/MachineGroupHeader'
 import { useCursorChatStoreStatus } from '@/hooks/queries/useCursorChatStoreStatus'
 
+export { getSessionTitle } from '@/lib/sessionTitle'
+
 type SessionGroup = {
     key: string
     directory: string

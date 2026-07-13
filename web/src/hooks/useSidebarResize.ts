@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 const STORAGE_KEY = 'hapi-sidebar-width'
+const COLLAPSED_STORAGE_KEY = 'hapi-sidebar-collapsed'
 const MIN_WIDTH = 280
 const MAX_WIDTH = 600
 const DEFAULT_WIDTH = 420
@@ -18,8 +19,13 @@ function loadWidth(): number {
     return DEFAULT_WIDTH
 }
 
+function loadCollapsed(): boolean {
+    return localStorage.getItem(COLLAPSED_STORAGE_KEY) === 'true'
+}
+
 export function useSidebarResize() {
     const [width, setWidth] = useState(loadWidth)
+    const [isCollapsed, setIsCollapsed] = useState(loadCollapsed)
     const [isDragging, setIsDragging] = useState(false)
     const startXRef = useRef(0)
     const startWidthRef = useRef(0)
@@ -67,6 +73,14 @@ export function useSidebarResize() {
         }
     }, [isDragging, width])
 
+    const toggleCollapsed = useCallback(() => {
+        setIsCollapsed((collapsed) => {
+            const next = !collapsed
+            localStorage.setItem(COLLAPSED_STORAGE_KEY, String(next))
+            return next
+        })
+    }, [])
+
     // Prevent text selection while dragging
     useEffect(() => {
         if (isDragging) {
@@ -82,5 +96,5 @@ export function useSidebarResize() {
         }
     }, [isDragging])
 
-    return { width, isDragging, onPointerDown }
+    return { width, isDragging, isCollapsed, onPointerDown, toggleCollapsed }
 }
