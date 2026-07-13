@@ -182,7 +182,7 @@ function SettingsIcon(props: { className?: string }) {
     )
 }
 
-function SidebarIcon(props: { className?: string; collapsed?: boolean }) {
+function SidebarChevronIcon(props: { className?: string; collapsed?: boolean }) {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -196,8 +196,6 @@ function SidebarIcon(props: { className?: string; collapsed?: boolean }) {
             strokeLinejoin="round"
             className={props.className}
         >
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <path d="M9 3v18" />
             <path d={props.collapsed ? 'm14 9 3 3-3 3' : 'm17 9-3 3 3 3'} />
         </svg>
     )
@@ -577,7 +575,7 @@ function SessionsPage() {
                                 title={t('sidebar.hide')}
                                 className="hidden lg:flex p-1.5 rounded-full text-[var(--app-hint)] hover:text-[var(--app-fg)] hover:bg-[var(--app-subtle-bg)] transition-colors"
                             >
-                                <SidebarIcon />
+                                <SidebarChevronIcon />
                             </button>
                             <button
                                 type="button"
@@ -664,7 +662,7 @@ function SessionsPage() {
                         title={t('sidebar.show')}
                         className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--app-hint)] transition-colors hover:bg-[var(--app-subtle-bg)] hover:text-[var(--app-fg)]"
                     >
-                        <SidebarIcon collapsed />
+                        <SidebarChevronIcon collapsed />
                     </button>
                 </div>
             ) : null}
