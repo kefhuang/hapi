@@ -1,0 +1,19 @@
+FROM oven/bun:1
+
+WORKDIR /app
+
+COPY package.json bun.lock ./
+COPY cli/package.json cli/package.json
+COPY shared/package.json shared/package.json
+COPY hub/package.json hub/package.json
+COPY web/package.json web/package.json
+COPY website/package.json website/package.json
+COPY docs/package.json docs/package.json
+
+RUN bun install
+
+COPY . .
+
+EXPOSE 5173
+
+CMD ["bun", "run", "dev:web", "--", "--host", "0.0.0.0"]

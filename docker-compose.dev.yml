@@ -1,0 +1,15 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web.dev
+    environment:
+      VITE_HUB_PROXY: http://host.docker.internal:3006
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - "30101:5173"
+    volumes:
+      - ./web:/app/web
+      - ./shared:/app/shared
+    restart: unless-stopped

@@ -1,5 +1,20 @@
 # AGENTS.md
 
+## Local workspace rules
+
+- This checkout is the custom HAPI web development copy under the `Kefhuang` owner.
+- Host port range: `301xx`; the web dev server uses host `30101` and container `5173`.
+- Run development services with Docker. Do not run Bun/Vite directly on the host.
+- Local test URL: `http://localhost:30101`; this is only the local development URL and is not a production deployment path.
+- Scope is currently web-only: edit `web/` and keep using the installed HAPI Hub at `http://127.0.0.1:3006` for API/SSE/Socket.IO.
+- The Docker dev proxy reaches the host Hub through `http://host.docker.internal:3006`.
+- Do not edit or replace the Homebrew HAPI binary while doing web-only development.
+- This branch starts from tag `v0.20.2` to match the installed Hub version.
+- Start: `docker compose -f docker-compose.dev.yml up -d --build`.
+- Follow logs: `docker compose -f docker-compose.dev.yml logs -f web`.
+- Stop: `docker compose -f docker-compose.dev.yml down`.
+- The local Docker rules above override upstream host-side Bun development commands below.
+
 Work style: telegraph; noun-phrases ok; drop grammar;
 
 Short guide for AI agents in this repo. Prefer progressive loading: start with the root README, then package READMEs as needed.
