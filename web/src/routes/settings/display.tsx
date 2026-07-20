@@ -5,7 +5,7 @@ import { getColorThemeOptions, getColorThemePreview, useColorTheme, type ColorTh
 import { getFontScaleOptions, useFontScale } from '@/hooks/useFontScale'
 import { getTerminalFontSizeOptions, useTerminalFontSize } from '@/hooks/useTerminalFontSize'
 import { getSessionListStatusModeOptions, useSessionListStatusMode } from '@/hooks/useSessionListStatusMode'
-import { useShowActiveSessionsOnly } from '@/hooks/useShowActiveSessionsOnly'
+import { useShowArchivedSessions } from '@/hooks/useShowArchivedSessions'
 import { MAX_SESSION_PREVIEW_LIMIT, MIN_SESSION_PREVIEW_LIMIT, normalizeSessionPreviewLimit, useSessionPreviewLimit } from '@/hooks/useSessionPreviewLimit'
 import { useThemeColors, type ThemeColorKeyId } from '@/hooks/useThemeColors'
 import { SettingsChoiceGroup, SettingsPageContent, SettingsRow, SettingsSection, SettingsSwitch } from '@/components/settings/SettingsPrimitives'
@@ -134,7 +134,7 @@ export default function SettingsDisplayPage() {
     const { fontScale, setFontScale } = useFontScale()
     const { terminalFontSize, setTerminalFontSize } = useTerminalFontSize()
     const { sessionListStatusMode, setSessionListStatusMode } = useSessionListStatusMode()
-    const { showActiveSessionsOnly, setShowActiveSessionsOnly } = useShowActiveSessionsOnly()
+    const { showArchivedSessions, setShowArchivedSessions } = useShowArchivedSessions()
 
     return (
         <SettingsPageContent title={t('settings.display.title')} description={t('settings.display.description')}>
@@ -157,7 +157,7 @@ export default function SettingsDisplayPage() {
 
             <SettingsSection title={t('settings.display.sessions')}>
                 <SessionPreviewLimitControl />
-                <SettingsSwitch label={t('settings.display.activeSessionsOnly')} description={t('settings.display.activeSessionsOnly.desc')} checked={showActiveSessionsOnly} onChange={setShowActiveSessionsOnly} />
+                <SettingsSwitch label={t('settings.display.showArchivedSessions')} checked={showArchivedSessions} onChange={setShowArchivedSessions} />
                 <SettingsChoiceGroup
                     label={t('settings.display.sessionListStatus')}
                     value={sessionListStatusMode}

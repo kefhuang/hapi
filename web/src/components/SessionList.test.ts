@@ -9,6 +9,7 @@ import {
     getSessionDedupKey,
     getWorktreeSessionLabel,
     getVisibleSessionPreview,
+    isArchivedSession,
     isSidebarEmptySessionStub,
     normalizeSearch,
     prepareSidebarSessions,
@@ -181,7 +182,7 @@ describe('deduplicateSessionsByAgentId', () => {
         expect(getSessionDedupKey(sessions[0])).toBe('codex:stale-shared-id')
         expect(getSessionDedupKey(sessions[1])).toBe('cursor:stale-shared-id')
         expect(deduplicateSessionsByAgentId(sessions).map(session => session.id).sort()).toEqual(['codex', 'cursor'])
-        expect(prepareSidebarSessions(sessions).map(session => session.id).sort()).toEqual(['codex', 'cursor'])
+        expect(prepareSidebarSessions(sessions, null, true).map(session => session.id).sort()).toEqual(['codex', 'cursor'])
     })
 })
 
@@ -218,11 +219,60 @@ describe('isSidebarEmptySessionStub', () => {
 })
 
 describe('prepareSidebarSessions', () => {
-    it('hides inactive empty stubs but keeps real sessions', () => {
+    it('hides archived sessions by default', () => {
+        const sessions = [
+            makeSession({ id: 'current', active: true, metadata: { path: '/work/hapi', agentSessionId: 'current' } }),
+            makeSession({ id: 'archived', metadata: { path: '/work/hapi', agentSessionId: 'archived', lifecycleState: 'archived' } })
+        ]
+
+        expect(prepareSidebarSessions(sessions).map(session => session.id)).toEqual(['current'])
+        expect(prepareSidebarSessions(sessions, null, true).map(session => session.id)).toEqual(['current', 'archived'])
+    })
+
+    it('hides the selected archived session too', () => {
+        const archived = makeSession({
+            id: 'archived',
+            metadata: { path: '/work/hapi', agentSessionId: 'archived', lifecycleState: 'archived' }
+        })
+
+        expect(prepareSidebarSessions([archived], 'archived')).toEqual([])
+    })
+
+    it('filters archives before deduplicating agent sessions', () => {
+        const sessions = [
+            makeSession({
+                id: 'current',
+                metadata: { path: '/work/hapi', agentSessionId: 'shared' },
+                updatedAt: 100
+            }),
+            makeSession({
+                id: 'archived',
+                metadata: { path: '/work/hapi', agentSessionId: 'shared', lifecycleState: 'archived' },
+                updatedAt: 200
+            })
+        ]
+
+        expect(prepareSidebarSessions(sessions).map(session => session.id)).toEqual(['current'])
+    })
+
+    it('treats legacy inactive running sessions as archived', () => {
+        const legacyArchived = makeSession({
+            id: 'legacy-archived',
+            active: false,
+            metadata: { path: '/work/hapi', agentSessionId: 'legacy', lifecycleState: 'running' }
+        })
+
+        expect(isArchivedSession(legacyArchived)).toBe(true)
+        expect(prepareSidebarSessions([legacyArchived])).toEqual([])
+        expect(prepareSidebarSessions([legacyArchived], null, true)).toEqual([legacyArchived])
+    })
+
+    it('hides inactive empty stubs but keeps active real sessions', () => {
         const sessions = [
             makeSession({ id: 'stub', metadata: { path: '/work/hapi' } }),
             makeSession({
                 id: 'real',
+                active: true,
                 metadata: { path: '/work/hapi', agentSessionId: 'thread-1', summary: { text: 'Real chat' } }
             })
         ]
@@ -231,7 +281,7 @@ describe('prepareSidebarSessions', () => {
         expect(result.map(session => session.id)).toEqual(['real'])
     })
 
-    it('keeps the selected inactive stub visible', () => {
+    it('hides the selected inactive stub with archived sessions disabled', () => {
         const sessions = [
             makeSession({ id: 'stub', metadata: { path: '/work/hapi' } }),
             makeSession({
@@ -241,7 +291,7 @@ describe('prepareSidebarSessions', () => {
         ]
 
         const result = prepareSidebarSessions(sessions, 'stub')
-        expect(result.map(session => session.id).sort()).toEqual(['real', 'stub'])
+        expect(result).toEqual([])
     })
 
     it('deduplicates before filtering stubs', () => {
@@ -249,11 +299,13 @@ describe('prepareSidebarSessions', () => {
             makeSession({ id: 'stub', metadata: { path: '/work/hapi' } }),
             makeSession({
                 id: 'older',
+                active: true,
                 metadata: { path: '/work/hapi', agentSessionId: 'thread-1' },
                 updatedAt: 100
             }),
             makeSession({
                 id: 'newer',
+                active: true,
                 metadata: { path: '/work/hapi', agentSessionId: 'thread-1' },
                 updatedAt: 200
             })

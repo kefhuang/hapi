@@ -14,7 +14,6 @@ import { useTranslation } from '@/lib/use-translation'
 import { DEFAULT_SESSION_PREVIEW_LIMIT, useSessionPreviewLimit } from '@/hooks/useSessionPreviewLimit'
 import { AgentFlavorIcon } from '@/components/AgentFlavorIcon'
 import { useSessionListStatusMode } from '@/hooks/useSessionListStatusMode'
-import { useShowActiveSessionsOnly } from '@/hooks/useShowActiveSessionsOnly'
 import { classifySessionAttention } from '@/lib/sessionAttention'
 import { getSessionLastSeenAt } from '@/lib/sessionLastSeen'
 import { getAttentionLabel, SessionAttentionIndicator } from '@/components/SessionAttentionIndicator'
@@ -28,6 +27,7 @@ import type { Machine } from '@/types/api'
 import { getMachinePlatform, presentMachineHealth } from '@/lib/machineHealth'
 import { MachineGroupHeader } from '@/components/MachineGroupHeader'
 import { useCursorChatStoreStatus } from '@/hooks/queries/useCursorChatStoreStatus'
+import { useShowArchivedSessions } from '@/hooks/useShowArchivedSessions'
 
 export { getSessionTitle } from '@/lib/sessionTitle'
 
@@ -208,8 +208,19 @@ export function shouldShowSessionInSidebar(session: SessionSummary, selectedSess
     return !isSidebarEmptySessionStub(session)
 }
 
-export function prepareSidebarSessions(sessions: SessionSummary[], selectedSessionId?: string | null): SessionSummary[] {
-    return deduplicateSessionsByAgentId(sessions, selectedSessionId)
+export function isArchivedSession(session: SessionSummary): boolean {
+    return session.metadata?.lifecycleState === 'archived' || !session.active
+}
+
+export function prepareSidebarSessions(
+    sessions: SessionSummary[],
+    selectedSessionId?: string | null,
+    showArchivedSessions = false
+): SessionSummary[] {
+    const sessionsAllowedByArchivePreference = sessions.filter(session => showArchivedSessions
+        || !isArchivedSession(session))
+
+    return deduplicateSessionsByAgentId(sessionsAllowedByArchivePreference, selectedSessionId)
         .filter(session => shouldShowSessionInSidebar(session, selectedSessionId))
 }
 
@@ -474,8 +485,6 @@ function ChevronIcon(props: { className?: string; collapsed?: boolean }) {
         </svg>
     )
 }
-
-export { getSessionTitle } from '@/lib/sessionTitle'
 
 export function getWorktreeSessionLabel(session: SessionSummary): string | null {
     const worktree = session.metadata?.worktree
@@ -775,7 +784,6 @@ function SessionItem(props: {
     const [menuAnchorPoint, setMenuAnchorPoint] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
     const [renameOpen, setRenameOpen] = useState(false)
     const [exportOpen, setExportOpen] = useState(false)
-    const [archiveOpen, setArchiveOpen] = useState(false)
     const [deleteOpen, setDeleteOpen] = useState(false)
     const {
         status: cursorChatStoreStatus,
@@ -929,7 +937,7 @@ function SessionItem(props: {
                 sessionActive={s.active}
                 onRename={() => setRenameOpen(true)}
                 onExport={() => setExportOpen(true)}
-                onArchive={() => setArchiveOpen(true)}
+                onArchive={() => void archiveSession()}
                 onReopen={cursorReopenDisabledReason ? undefined : handleReopen}
                 reopenDisabledReason={cursorReopenDisabledReason}
                 onDelete={() => setDeleteOpen(true)}
@@ -967,18 +975,6 @@ function SessionItem(props: {
             ) : null}
 
             <ConfirmDialog
-                isOpen={archiveOpen}
-                onClose={() => setArchiveOpen(false)}
-                title={t('dialog.archive.title')}
-                description={t('dialog.archive.description', { name: sessionName })}
-                confirmLabel={t('dialog.archive.confirm')}
-                confirmingLabel={t('dialog.archive.confirming')}
-                onConfirm={archiveSession}
-                isPending={isPending}
-                destructive
-            />
-
-            <ConfirmDialog
                 isOpen={deleteOpen}
                 onClose={() => setDeleteOpen(false)}
                 title={t('dialog.delete.title')}
@@ -1011,7 +1007,7 @@ export function SessionList(props: {
     const { renderHeader = true, api, selectedSessionId, machineLabelsById = {}, machinesById = {}, onNewSessionInDirectory } = props
     const { sessionPreviewLimit } = useSessionPreviewLimit()
     const { sessionListStatusMode } = useSessionListStatusMode()
-    const { showActiveSessionsOnly } = useShowActiveSessionsOnly()
+    const { showArchivedSessions } = useShowArchivedSessions()
     const showDetailedStatus = sessionListStatusMode === 'detailed'
     const [searchQuery, setSearchQuery] = useState('')
     const [customStart, setCustomStart] = useState('')
@@ -1039,11 +1035,8 @@ export function SessionList(props: {
     }
 
     const allSessions = useMemo(
-        () => {
-            const prepared = prepareSidebarSessions(props.sessions, selectedSessionId)
-            return showActiveSessionsOnly ? filterActiveSessionsOnly(prepared, selectedSessionId) : prepared
-        },
-        [props.sessions, selectedSessionId, showActiveSessionsOnly]
+        () => prepareSidebarSessions(props.sessions, selectedSessionId, showArchivedSessions),
+        [props.sessions, selectedSessionId, showArchivedSessions]
     )
     const visibleSessions = useMemo(
         () => isFiltering

@@ -124,7 +124,6 @@ export function SessionHeader(props: {
     const menuAnchorRef = useRef<HTMLButtonElement | null>(null)
     const [renameOpen, setRenameOpen] = useState(false)
     const [exportOpen, setExportOpen] = useState(false)
-    const [archiveOpen, setArchiveOpen] = useState(false)
     const [deleteOpen, setDeleteOpen] = useState(false)
     const [isSyncingCodex, setIsSyncingCodex] = useState(false)
 
@@ -311,7 +310,7 @@ export function SessionHeader(props: {
                 onRename={() => setRenameOpen(true)}
                 onExport={() => setExportOpen(true)}
                 onSyncCodex={api && codexSessionId ? handleSyncCodex : undefined}
-                onArchive={() => setArchiveOpen(true)}
+                onArchive={() => void archiveSession()}
                 onReopen={props.canReopen === false ? undefined : handleReopen}
                 reopenDisabledReason={props.reopenDisabledReason}
                 onDelete={() => setDeleteOpen(true)}
@@ -345,18 +344,6 @@ export function SessionHeader(props: {
                 onClose={() => setExportOpen(false)}
                 sessionId={session.id}
                 api={api}
-            />
-
-            <ConfirmDialog
-                isOpen={archiveOpen}
-                onClose={() => setArchiveOpen(false)}
-                title={t('dialog.archive.title')}
-                description={t('dialog.archive.description', { name: title })}
-                confirmLabel={t('dialog.archive.confirm')}
-                confirmingLabel={t('dialog.archive.confirming')}
-                onConfirm={archiveSession}
-                isPending={isPending}
-                destructive
             />
 
             <ConfirmDialog
